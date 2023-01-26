@@ -23,7 +23,7 @@ def rgb2gray(img):
         return
     
     """ Your code starts here """
-    
+    img_gray = 0.299*img[:,:,0] + 0.587*img[:,:,1] + 0.114*img[:,:,2]
     """ Your code ends here """
     return img_gray
 
@@ -54,7 +54,18 @@ def gray2grad(img):
     
 
     """ Your code starts here """
-
+    def conv2d(conv_filter):
+        pad_size = (conv_filter.shape[0] - 1) // 2
+        pad_img = pad_zeros(img, pad_size, pad_size, pad_size, pad_size)
+        view_shape = conv_filter.shape + tuple(np.subtract(pad_img.shape, conv_filter.shape) + 1)
+        submat = np.lib.stride_tricks.as_strided(pad_img, view_shape, pad_img.strides + pad_img.strides)
+        img_grad = np.einsum('ij,ijkl->kl', np.flipud(np.fliplr(conv_filter)), submat)
+        return img_grad
+    
+    img_grad_h = conv2d(sobelh)
+    img_grad_v = conv2d(sobelv)
+    img_grad_d1 = conv2d(sobeld1)
+    img_grad_d2 = conv2d(sobeld2)
     """ Your code ends here """
     return img_grad_h, img_grad_v, img_grad_d1, img_grad_d2
 
@@ -79,7 +90,7 @@ def pad_zeros(img, pad_height_bef, pad_height_aft, pad_width_bef, pad_width_aft)
     img_pad = np.zeros((new_height, new_width)) if len(img.shape) == 2 else np.zeros((new_height, new_width, img.shape[2]))
 
     """ Your code starts here """
-
+    img_pad[pad_height_bef:pad_height_bef + height, pad_width_bef:pad_width_bef + width] = img
     """ Your code ends here """
     return img_pad
 
