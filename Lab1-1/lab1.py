@@ -55,11 +55,21 @@ def gray2grad(img):
 
     """ Your code starts here """
     def conv2d(conv_filter):
-        pad_size = (conv_filter.shape[0] - 1) // 2
-        pad_img = pad_zeros(img, pad_size, pad_size, pad_size, pad_size)
-        view_shape = conv_filter.shape + tuple(np.subtract(pad_img.shape, conv_filter.shape) + 1)
-        submat = np.lib.stride_tricks.as_strided(pad_img, view_shape, pad_img.strides + pad_img.strides)
-        img_grad = np.einsum('ij,ijkl->kl', np.flipud(np.fliplr(conv_filter)), submat)
+        pad_size = conv_filter.shape[0] // 2 # conv_filter of size (2k+1)x(2k+1), so pad size is k=(2k+1)//2
+        pad_img = pad_zeros(img, pad_size, pad_size, pad_size, pad_size) # padded image
+        conv_filter_flip = np.flipud(np.fliplr(conv_filter)) # filter flipped horizontally, then vertically
+        filter_shape = conv_filter_flip.shape
+        end_shape = np.subtract(pad_img.shape, conv_filter.shape) + 1
+        img_grad = np.zeros(end_shape)
+        # Iterate over each element in output image
+        for ho in range(end_shape[0]):
+            for wo in range(end_shape[1]):
+                x_ij = 0
+                # Iterate over each element in filter and add element-wise product to x_ij
+                for hk in range(filter_shape[0]):
+                    for wk in range(filter_shape[1]):
+                        x_ij += conv_filter_flip[hk,wk]*pad_img[ho+hk,wo+wk]
+                img_grad[ho,wo] = x_ij
         return img_grad
     
     img_grad_h = conv2d(sobelh)
