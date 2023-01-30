@@ -101,7 +101,7 @@ def pad_zeros(img, pad_height_bef, pad_height_aft, pad_width_bef, pad_width_aft)
 
     """ Your code starts here """
     img_pad[pad_height_bef:pad_height_bef + height, pad_width_bef:pad_width_bef + width] = img
-    img_pad = img_pad.astype(int) # convert to int for proper display by matplotlib
+    img_pad = img_pad.astype(np.uint8) if len(img.shape) == 3 else img_pad # cast to uint8 for 3D arrays as per np.pad behaviour for proper display in imshow
     """ Your code ends here """
     return img_pad
 
