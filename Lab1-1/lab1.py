@@ -162,9 +162,9 @@ def normalized_cross_correlation_fast(img, template):
     response = np.zeros((Ho, Wo), dtype=float)
     for ho in range(Ho):
         for wo in range(Wo):
-            x_ij = np.sum(np.multiply(template, img[ho:ho+Hk,wo:wo+Wk], dtype='uint16'))
-            filter_norm = np.sqrt(np.sum(np.square(template, dtype='uint16')))
-            window_norm = np.sqrt(np.sum(np.square(img[ho:ho+Hk,wo:wo+Wk], dtype='uint16')))
+            x_ij = np.sum(np.multiply(template, img[ho:ho+Hk,wo:wo+Wk], dtype=np.uint16))
+            filter_norm = np.sqrt(np.sum(np.square(template, dtype=np.uint16)))
+            window_norm = np.sqrt(np.sum(np.square(img[ho:ho+Hk,wo:wo+Wk], dtype=np.uint16)))
             response[ho,wo] = x_ij / (filter_norm * window_norm)
     """ Your code ends here """
     return response
@@ -187,7 +187,21 @@ def normalized_cross_correlation_matrix(img, template):
     Wo = Wi - Wk + 1
 
     """ Your code starts here """
-
+    num_channels = img.shape[-1]
+    row_idx = 0
+    Pr = np.zeros((Ho*Wo, 3*Hk*Wk), dtype=float)
+    for ho in range(Ho):
+        for wo in range(Wo):
+            image_section = img[ho:ho+Hk,wo:wo+Wk,:] # w_ij
+            window_norm = np.sqrt(np.sum(np.square(image_section, dtype=np.uint16))) # normalisation constant for w_ij
+            row = image_section.reshape(Hk**2, num_channels).flatten('F') # construct each row in reshaped Pr matrix
+            Pr[row_idx,:] = row / window_norm # normalise the Pr matrix row by row
+            row_idx += 1
+    filter_norm = np.sqrt(np.sum(np.square(template, dtype=np.uint16))) # normalisation constant for filter
+    Fr = template.reshape(Hk**2, num_channels).flatten('F') # construct the Fr column vector
+    Fr = Fr / filter_norm # normalise the Fr matrix
+    Xr = np.matmul(Pr, Fr, dtype=float) # Xr = Pr * Fr
+    response = Xr.reshape(Ho, Wo) # reshape Xr to output shape
     """ Your code ends here """
     return response
 
