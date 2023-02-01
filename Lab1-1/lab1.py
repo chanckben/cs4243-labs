@@ -226,7 +226,44 @@ def non_max_suppression(response, suppress_range, threshold=None):
     """
     
     """ Your code starts here """
+    res = response.copy()
 
+    # Set values below threshold to 0
+    if threshold:
+        res[res < threshold] = 0
+        
+    H_range = suppress_range[0]
+    W_range = suppress_range[1]
+
+    local_maxima = []
+
+    while (True):
+        max_point_coordinates = np.unravel_index(res.argmax(), res.shape)
+
+        # Break if no new local maxima
+        if len(local_maxima) > 0 and max_point_coordinates == local_maxima[-1]:
+            break
+
+        def lower_bound_x_by_zero(x: int):
+            return max(x, 0)
+        
+        def upper_bound_x_by_y(x: int, y: int):
+            return min(x, y)
+
+        max_point_H_coordinate, max_point_W_coordinate = max_point_coordinates
+        
+        # Set suppression window values to 0
+        res[
+            lower_bound_x_by_zero(max_point_H_coordinate-H_range):upper_bound_x_by_y(max_point_H_coordinate+H_range, res.shape[0]),
+            lower_bound_x_by_zero(max_point_W_coordinate-W_range):upper_bound_x_by_y(max_point_W_coordinate+W_range, res.shape[1])
+        ] = 0
+
+        local_maxima.append(max_point_coordinates)
+
+    # Return sparse response map containing only local maxima
+    for coordinates in local_maxima:
+        H_coordinate, W_coordinate = coordinates
+        res[H_coordinate][W_coordinate] = response[H_coordinate][W_coordinate]
     """ Your code ends here """
     return res
 
