@@ -162,9 +162,9 @@ def normalized_cross_correlation_fast(img, template):
     response = np.zeros((Ho, Wo), dtype=float)
     for ho in range(Ho):
         for wo in range(Wo):
-            x_ij = np.sum(np.multiply(template, img[ho:ho+Hk,wo:wo+Wk], dtype=np.uint16))
-            filter_norm = np.sqrt(np.sum(np.square(template, dtype=np.uint16)))
-            window_norm = np.sqrt(np.sum(np.square(img[ho:ho+Hk,wo:wo+Wk], dtype=np.uint16)))
+            x_ij = np.sum(np.multiply(template, img[ho:ho+Hk,wo:wo+Wk], dtype=float))
+            filter_norm = np.sqrt(np.sum(np.square(template, dtype=float)))
+            window_norm = np.sqrt(np.sum(np.square(img[ho:ho+Hk,wo:wo+Wk], dtype=float)))
             response[ho,wo] = x_ij / (filter_norm * window_norm)
     """ Your code ends here """
     return response
@@ -284,7 +284,17 @@ def normalized_cross_correlation_ms(img, template):
     Wo = Wi - Wk + 1
 
     """ Your code starts here """
-
+    num_channels = img.shape[-1]
+    response = np.zeros((Ho, Wo), dtype=float)
+    template_ms = template - template.reshape(Hk * Wk, num_channels).sum(axis=0) / (Hk * Wk)
+    for ho in range(Ho):
+        for wo in range(Wo):
+            window = img[ho:ho+Hk,wo:wo+Wk]
+            window_ms = window - window.reshape(Hk * Wk, num_channels).sum(axis=0) / (Hk * Wk)
+            x_ij = np.sum(np.multiply(template_ms, window_ms, dtype=float))
+            filter_norm = np.sqrt(np.sum(np.square(template_ms, dtype=float)))
+            window_norm = np.sqrt(np.sum(np.square(window_ms, dtype=float)))
+            response[ho,wo] = x_ij / (filter_norm * window_norm)
     """ Your code ends here """
     return response
 
