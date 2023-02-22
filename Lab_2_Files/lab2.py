@@ -165,6 +165,21 @@ def estimate_gradients(original_img, display=True):
     
  
     '''
+    # Reference: Lecture 3 Slide 16
+    # Step 1: Define filters
+    Kx = np.array([[1,2,1],
+                   [0,0,0],
+                   [-1,-2,-1]])
+    Ky = np.array([[1,0,-1],
+                   [2,0,-2],
+                   [1,0,-1]])
+    # Step 2: Compute dx and dy by convolution with image
+    original_img = original_img / 255 # prevent overflow
+    dx = cs4243_filter(original_img, Kx)
+    dy = cs4243_filter(original_img, Ky)
+    # Step 3: Compute gradient orientation and magnitude
+    d_mag = np.sqrt(dx**2 + dy**2)
+    d_angle = np.arctan2(dy, dx)
 
     # END
     if display:
