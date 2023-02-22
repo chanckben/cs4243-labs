@@ -298,7 +298,25 @@ def non_maximum_suppression(d_mag, d_angle, display=True):
     d_angle_180 = d_angle * 180/np.pi
  
     # YOUR CODE HERE
-
+    # Ignore edge pixels (see Lab 2 forum)
+    for i in range(1, d_mag.shape[0]-1):
+        for j in range(1, d_mag.shape[1]-1):
+            curr_angle = d_angle_180[i,j]
+            # Transform angle to within [0,180]
+            if curr_angle < 0:
+                curr_angle += 180
+            # Partition to determine which pixel is neighbouring
+            if 0 <= curr_angle < 22.5 or 157.5 <= curr_angle <= 180:
+                neighbours = (d_mag[i+1,j], d_mag[i-1,j])
+            elif 22.5 <= curr_angle < 67.5:
+                neighbours = (d_mag[i-1,j-1], d_mag[i+1,j+1])
+            elif 67.5 <= curr_angle < 112.5:
+                neighbours = (d_mag[i,j+1], d_mag[i,j-1])
+            elif 112.5 <= curr_angle < 157.5:
+                neighbours = (d_mag[i-1,j+1], d_mag[i+1,j-1])
+            # Compare centre pixel intensity with neighbouring values
+            if d_mag[i,j] > neighbours[0] and d_mag[i,j] > neighbours[1]:
+                out[i,j] = d_mag[i,j]
     # END
     if display:
         _ = plt.figure(figsize=(10,10))
