@@ -346,7 +346,19 @@ def double_thresholding(inp, perc_weak=0.1, perc_strong=0.3, display=True):
     weak_edges = strong_edges = None
     
     # YOUR CODE HERE
-    
+    max_val = np.max(inp)
+    min_val = np.min(inp)
+    range_ = max_val - min_val
+    high_threshold = min_val + perc_strong * range_
+    low_threshold = min_val + perc_weak * range_
+    weak_edges = np.zeros_like(inp)
+    strong_edges = np.zeros_like(inp)
+    for i in range(inp.shape[0]):
+        for j in range(inp.shape[1]):
+            if inp[i,j] > high_threshold:
+                strong_edges[i,j] = 1
+            elif high_threshold > inp[i,j] > low_threshold:
+                weak_edges[i,j] = 1
     # END
     
     if display:
