@@ -23,7 +23,11 @@ def make_gaussian_kernel(ksize, sigma):
     '''
     
     # YOUR CODE HERE
-
+    kernel = np.zeros((ksize, ksize))
+    xy_mean = ksize // 2
+    for x in range(ksize):
+        for y in range(ksize):
+            kernel[x,y] = math.exp(((x-xy_mean)**2 + (y-xy_mean)**2)/(-2*sigma**2))
     # END
 
     return kernel / kernel.sum()
