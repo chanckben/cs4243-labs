@@ -219,6 +219,35 @@ def non_maximum_suppression_interpol(d_mag, d_angle, display=True):
     d_angle_180 = d_angle * 180/np.pi
     
     # YOUR CODE HERE
+    # Ignore edge pixels (see Lab 2 forum)
+    for i in range(1, d_mag.shape[0]-1):
+        for j in range(1, d_mag.shape[1]-1):
+            curr_angle = d_angle_180[i,j]
+            # Transform angle to within [0,180]
+            if curr_angle < 0:
+                curr_angle += 180
+            # Partition to determine which pixel is neighbouring
+            if 0 <= curr_angle <= 45: # | to \
+                first = (d_mag[i-1,j-1], d_mag[i-1,j]) # outer: top-left, inner: top-centre
+                second = (d_mag[i+1,j+1], d_mag[i+1,j]) # outer: bottom-right, inner: bottom-centre
+            elif 45 <= curr_angle <= 90: # \ to -
+                curr_angle = 90 - curr_angle
+                first = (d_mag[i-1,j-1], d_mag[i,j-1]) # outer: top-left, inner: left
+                second = (d_mag[i+1,j+1], d_mag[i,j+1]) # outer: bottom-right, inner: right
+            elif 90 <= curr_angle <= 135: # - to /
+                curr_angle = curr_angle - 90
+                first = (d_mag[i+1,j-1], d_mag[i,j-1]) # outer: bottom-left, inner: left
+                second = (d_mag[i-1,j+1], d_mag[i,j+1]) # outer: top-right, inner: right
+            elif 135 <= curr_angle <= 180: # / to |
+                curr_angle = 180 - curr_angle
+                first = (d_mag[i+1,j-1], d_mag[i+1,j]) # outer: bottom-left, inner: bottom-centre
+                second = (d_mag[i-1,j+1], d_mag[i-1,j]) # outer: top-right, inner: top-centre
+            # Find both interpolated values
+            first_interpol = np.tan(curr_angle * np.pi/180)*(first[0] - first[1]) + first[1]
+            second_interpol = np.tan(curr_angle * np.pi/180)*(second[0] - second[1]) + second[1]
+            # Compare centre pixel intensity with interpolated values
+            if d_mag[i,j] > first_interpol and d_mag[i,j] > second_interpol:
+                out[i,j] = d_mag[i,j]
 
     # END
     if display:
