@@ -398,7 +398,50 @@ def edge_linking(weak, strong, n=200, display=True):
     out = None
     
     # YOUR CODE HERE
+    # Helper functions to generate offset images
+    def shift_up(arr):
+        new_arr = np.zeros_like(arr)
+        new_arr[:-1] = arr[1:]
+        return new_arr
+    def shift_down(arr):
+        new_arr = np.zeros_like(arr)
+        new_arr[1:] = arr[:-1]
+        return new_arr
+    def shift_left(arr):
+        new_arr = np.zeros_like(arr)
+        new_arr[:,:-1] = arr[:,1:]
+        return new_arr
+    def shift_right(arr):
+        new_arr = np.zeros_like(arr)
+        new_arr[:,1:] = arr[:,:-1]
+        return new_arr
     
+    import copy
+    out = copy.deepcopy(strong)
+    added = True
+    for i in range(n):
+        added = False
+        # Construct sum of 8 offset images
+        sum_of_eight = np.zeros_like(out)
+        sum_of_eight += shift_left(out) + shift_right(out)
+        vert_shift = [shift_up(out), shift_down(out)]
+        for vert_shift_img in vert_shift:
+            hori_shift = [shift_left(vert_shift_img), vert_shift_img, shift_right(vert_shift_img)]
+            for img in hori_shift:
+                sum_of_eight += img
+    
+        # Iterate over weak image and do edge linking
+        for i in range(weak.shape[0]):
+            for j in range(weak.shape[1]):
+                if weak[i,j] == 1 and sum_of_eight[i,j] > 0:
+                    out[i,j] = 1
+                    weak[i,j] = 0
+                    added = True
+
+        # Stopping condition: No more pixel is added to strong pixel set
+        if not added:
+            break
+    s = out
     # END
     if display:
         _ = plt.figure(figsize=(10,10))
