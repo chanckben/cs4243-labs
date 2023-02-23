@@ -568,15 +568,16 @@ def hough_vote_circles(img, radius = None):
     # YOUR CODE HERE
     # Quantize parameter space
     R_max = round(R_max)
-    R = np.linspace(0, R_max-1, R_max) # R = np.linspace(R_min, R_max, R_max-R_min)
+    num_radius_parameters = R_max-R_min+1
+    R = np.linspace(R_min, R_max, num_radius_parameters, dtype=np.uint)
     X = np.linspace(0, h-1, h)
     Y = np.linspace(0, w-1, w)
 
     #1. Initializing accumulator array A.
     #   A should have three dimensions, in this order: radius, x coordinate, y coordinate
     #   Remember padding
-    A = np.zeros((R_max, h, w)) # A = np.zeros((R_max - R_min, h, w))
-    A = np.pad(A, R_max)
+    A = np.zeros((num_radius_parameters, h, w))
+    A = np.pad(A, ((0,), (R_max,), (R_max,)))
 
     #2. Extracting all edge coordinates
     edge_coord = []
@@ -586,8 +587,8 @@ def hough_vote_circles(img, radius = None):
                 edge_coord.append((i,j))
     
     #3. For each radius:
-    # for r in range(0, R_max-R_min):
-    for r in range(R_min, R_max):
+    for radii_idx in range(num_radius_parameters):
+        r = R[radii_idx]
         
         #3.1 Creating a circular mask
         mask = lambda x, y: circle_perimeter(x, y, r)
@@ -599,10 +600,10 @@ def hough_vote_circles(img, radius = None):
         for x, y in edge_coord:
         #    Center the mask over that point and update the accumulator array
             rr, cc = mask(x+R_max, y+R_max) # returns indices belonging to circle parameter
-            A[r, rr, cc] += 1 # A[r+R_max, rr+R_max, cc+R_max] += 1
+            A[radii_idx, rr, cc] += 1
 
     # Remove padding
-    A = A[R_max:-R_max, R_max:-R_max, R_max:-R_max]
+    A = A[:, R_max:-R_max, R_max:-R_max]
     # END
    
     return A, R, X, Y
