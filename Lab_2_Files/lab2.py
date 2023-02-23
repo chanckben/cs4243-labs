@@ -638,7 +638,47 @@ def hough_vote_circles_grad(img, d_angle, radius = None):
         [R_min,R_max] = radius
     
     # YOUR CODE HERE
+    # Quantize parameter space
+    R_max = round(R_max)
+    num_radius_parameters = R_max-R_min+1
+    R = np.linspace(R_min, R_max, num_radius_parameters, dtype=np.uint)
+    X = np.linspace(0, h-1, h)
+    Y = np.linspace(0, w-1, w)
 
+    #1. Initializing accumulator array A.
+    #   A should have three dimensions, in this order: radius, x coordinate, y coordinate
+    #   Remember padding
+    A = np.zeros((num_radius_parameters, h, w))
+    A = np.pad(A, ((0,), (R_max,), (R_max,)))
+
+    #2. Extracting all edge coordinates
+    edge_coord = []
+    for i in range(h):
+        for j in range(w):
+            if img[i,j] == 1:
+                edge_coord.append((i,j))
+    
+    #3. For each radius:
+    for radii_idx in range(num_radius_parameters):
+        r = R[radii_idx]
+        
+        for x, y in edge_coord:
+            # TODO: Check gradient orientation line
+            gradient_orientation_1 = d_angle[x, y]
+            gradient_orientation_2 = gradient_orientation_1 + np.pi
+
+            x_point_1 = int(x + (r * np.cos(gradient_orientation_1)))
+            y_point_1 = int(y + (r * np.sin(gradient_orientation_1)))
+            x_point_2 = int(x + (r * np.cos(gradient_orientation_2)))
+            y_point_2 = int(y + (r * np.sin(gradient_orientation_2)))
+
+            # Cast two votes along orientation line
+            # Apply scaling to account for less 'points' on circumference of smaller circle wrt to biggest circle
+            A[radii_idx, x_point_1+R_max, y_point_1+R_max] += 1/r*R_max
+            A[radii_idx, x_point_2+R_max, y_point_2+R_max] += 1/r*R_max
+
+    # Remove padding
+    A = A[:, R_max:-R_max, R_max:-R_max]
     # END
     return A, R, X, Y
 
