@@ -462,7 +462,43 @@ def hough_vote_lines(img):
     :return thetas: theta values array
     '''
     # YOUR CODE HERE
+    # Default intervals for rho and theta
+    DISTANCE_INTERVAL = 1
+    THETA_INTERVAL = np.pi/180
 
+    height, width = img.shape
+    len_image_diagonal = (height**2 + width**2)**0.5
+
+    # Range of rho and theta
+    DISTANCE_RANGE_LEN = 2*len_image_diagonal  # [-d, d]
+    THETA_RANGE_LEN = np.pi  # [0, 𝜋]
+
+    number_of_distance_bins = int(DISTANCE_RANGE_LEN / DISTANCE_INTERVAL)
+    number_of_theta_bins = int(THETA_RANGE_LEN / THETA_INTERVAL)
+
+    # Accumulator array
+    A = np.zeros((number_of_distance_bins, number_of_theta_bins))
+
+    # Quantized theta values [0, 𝜋]
+    thetas = np.array([THETA_INTERVAL * i for i in range(number_of_theta_bins)])
+
+    # Quantized distance (rho) values [-d, d]
+    distances = np.array([DISTANCE_INTERVAL * i - int(len_image_diagonal) for i in range(number_of_distance_bins)])
+
+    # For each pixel in img, calculate rho for every quantized value of theta
+    for x in range(len(img)):
+        for y in range(len(img[0])):
+            # Only plot hough space for detected edges
+            if img[x][y] == 0:
+                continue
+
+            for theta_bin_idx in range(len(thetas)):
+                rho = x*np.cos(thetas[theta_bin_idx]) + y*np.sin(thetas[theta_bin_idx])
+
+                # Place rho in correct bin in [-d, d]
+                rho_bin_idx = round((rho + len_image_diagonal) % DISTANCE_RANGE_LEN)
+
+                A[rho_bin_idx, theta_bin_idx] += 1
     # END
             
     return A, distances, thetas
