@@ -600,7 +600,7 @@ def hough_vote_circles(img, radius = None):
         for x, y in edge_coord:
         #    Center the mask over that point and update the accumulator array
             rr, cc = mask(x+R_max, y+R_max) # returns indices belonging to circle parameter
-            A[radii_idx, rr, cc] += 1
+            A[radii_idx, rr, cc] += 1/r*R_max # apply scaling to account for less 'points' on circumference of smaller circle wrt to biggest circle
 
     # Remove padding
     A = A[:, R_max:-R_max, R_max:-R_max]
