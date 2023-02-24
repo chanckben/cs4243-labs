@@ -639,13 +639,14 @@ def hough_vote_circles_grad(img, d_angle, radius = None):
     
     # YOUR CODE HERE
     # Quantize parameter space
+    INTERVAL_SIZE = 1
     R_max = round(R_max)
     num_radius_parameters = R_max-R_min+1
     R = np.linspace(R_min, R_max, num_radius_parameters, dtype=np.uint)
     X = np.linspace(0, h-1, h)
     Y = np.linspace(0, w-1, w)
 
-    #1. Initializing accumulator array A.
+    #1. Initializing SPARSE accumulator array A.
     #   A should have three dimensions, in this order: radius, x coordinate, y coordinate
     #   Remember padding
     A = np.zeros((num_radius_parameters, h, w))
@@ -660,17 +661,20 @@ def hough_vote_circles_grad(img, d_angle, radius = None):
     
     #3. For each radius:
     for radii_idx in range(num_radius_parameters):
+        # If not multiple of radius interval, leave it sparse
+        if not R[radii_idx] % INTERVAL_SIZE == 0:
+            continue
+
         r = R[radii_idx]
         
         for x, y in edge_coord:
-            # TODO: Check gradient orientation line
             gradient_orientation_1 = d_angle[x, y]
             gradient_orientation_2 = gradient_orientation_1 + np.pi
 
-            x_point_1 = round(x + (r * np.cos(gradient_orientation_1)))
-            y_point_1 = round(y + (r * np.sin(gradient_orientation_1)))
-            x_point_2 = round(x + (r * np.cos(gradient_orientation_2)))
-            y_point_2 = round(y + (r * np.sin(gradient_orientation_2)))
+            x_point_1 = round((x + (r * np.cos(gradient_orientation_1)))/INTERVAL_SIZE) * INTERVAL_SIZE
+            y_point_1 = round((y + (r * np.sin(gradient_orientation_1)))/INTERVAL_SIZE) * INTERVAL_SIZE
+            x_point_2 = round((x + (r * np.cos(gradient_orientation_2)))/INTERVAL_SIZE) * INTERVAL_SIZE
+            y_point_2 = round((y + (r * np.sin(gradient_orientation_2)))/INTERVAL_SIZE) * INTERVAL_SIZE
 
             # Cast two votes along orientation line
             # Apply scaling to account for less 'points' on circumference of smaller circle wrt to biggest circle
