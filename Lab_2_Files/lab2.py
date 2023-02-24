@@ -667,10 +667,10 @@ def hough_vote_circles_grad(img, d_angle, radius = None):
             gradient_orientation_1 = d_angle[x, y]
             gradient_orientation_2 = gradient_orientation_1 + np.pi
 
-            x_point_1 = int(x + (r * np.cos(gradient_orientation_1)))
-            y_point_1 = int(y + (r * np.sin(gradient_orientation_1)))
-            x_point_2 = int(x + (r * np.cos(gradient_orientation_2)))
-            y_point_2 = int(y + (r * np.sin(gradient_orientation_2)))
+            x_point_1 = round(x + (r * np.cos(gradient_orientation_1)))
+            y_point_1 = round(y + (r * np.sin(gradient_orientation_1)))
+            x_point_2 = round(x + (r * np.cos(gradient_orientation_2)))
+            y_point_2 = round(y + (r * np.sin(gradient_orientation_2)))
 
             # Cast two votes along orientation line
             # Apply scaling to account for less 'points' on circumference of smaller circle wrt to biggest circle
