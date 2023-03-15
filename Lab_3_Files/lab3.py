@@ -170,7 +170,12 @@ def top_k_matches(desc1, desc2, k=2):
     match_pairs = []
     
     """ Your code starts here """
-    
+    euclidean_distances = cdist(desc1, desc2, metric="euclidean") # returns m1xm2 matrix of euclidean distances between desc1 and desc2
+    sorted_indices = np.argsort(euclidean_distances, axis=1) # return indices that would sort the values along horizontal axis
+    sorted_euclidean_distances = np.take_along_axis(euclidean_distances, sorted_indices, axis=1) # same result as np.sort(euclidean_distances, axis=1)
+
+    for i in range(0, desc1.shape[0]):
+        match_pairs.append((i, [(sorted_indices[i][j], sorted_euclidean_distances[i][j]) for j in range(0, k)]))
     """ Your code ends here """
 
     return match_pairs
@@ -199,7 +204,16 @@ def ratio_test_match(desc1, desc2, match_threshold):
     top_2_matches = top_k_matches(desc1, desc2)
     
     """ Your code starts here """
-    
+    for match_tuple in top_2_matches:
+        f1_idx, matches = match_tuple
+        f_2a, f_2b = matches
+        f_2a_idx, f_2a_value = f_2a
+        _, f_2b_value = f_2b
+
+        ratio = f_2a_value / f_2b_value
+
+        if ratio < match_threshold:
+            match_pairs.append([f1_idx, f_2a_idx])
     """ Your code ends here """
 
     # Modify this line as you wish
