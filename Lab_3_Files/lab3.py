@@ -44,7 +44,16 @@ def harris_corners(img, window_size=3, k=0.04):
     response = np.zeros((H, W))
 
     """ Your code starts here """
-    
+    Ix = filters.sobel_v(img)
+    Iy = filters.sobel_h(img)
+
+    A = convolve(Ix * Ix, window)
+    B = convolve(Ix * Iy, window)
+    C = convolve(Iy * Iy, window)
+
+    det = A*C - B*B
+    trace = A+C
+    response = det - k * np.square(trace)    
     """ Your code ends here """ 
     
     return response
