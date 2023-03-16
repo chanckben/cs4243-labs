@@ -154,21 +154,21 @@ def simple_sift(patch):
     histogram = np.zeros((4,4,8))
     
     """ Your code starts here """
-    cell_arr = patch.reshape(4,4,-1,4).swapaxes(1,2).reshape(-1,4,4)
-    weight_arr = weights.reshape(4,4,-1,4).swapaxes(1,2).reshape(-1,4,4)
+    Ix = filters.sobel_v(patch).reshape(4,4,-1,4).swapaxes(1,2).reshape(4,4,4,4)
+    Iy = filters.sobel_h(patch).reshape(4,4,-1,4).swapaxes(1,2).reshape(4,4,4,4)
+    weight_arr = weights.reshape(4,4,-1,4).swapaxes(1,2).reshape(4,4,4,4)
     for i in range(4):
         for j in range(4):
-            cell = cell_arr[4*i+j]
             hist_bins = np.zeros(8, dtype=float)
-            Ix = filters.sobel_v(cell)
-            Iy = filters.sobel_h(cell)
-            magnitude = np.sqrt(Ix**2 + Iy**2)
-            orientation = np.arctan2(Iy, Ix)
+            curr_Ix = Ix[i,j]
+            curr_Iy = Iy[i,j]
+            magnitude = np.sqrt(curr_Ix**2 + curr_Iy**2)
+            orientation = np.arctan2(curr_Iy, curr_Ix)
             bin_index = (np.degrees(orientation + np.pi) // 45).astype(int)
             bin_index[bin_index == 8] = 0 # if angle is 360 degrees, change to 0 degrees
-            vote_weight = magnitude * weight_arr[4*i+j]
+            vote_weight = magnitude * weight_arr[i,j]
             for idx, weight in zip(bin_index.flatten(), vote_weight.flatten()):
-                hist_bins[idx] = weight
+                hist_bins[idx] += weight
             histogram[i,j] = hist_bins
     feature = histogram.flatten()
     feature = feature / np.linalg.norm(feature)
