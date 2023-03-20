@@ -305,7 +305,61 @@ def compute_homography(src, dst):
     h_matrix = np.eye(3, dtype=np.float64)
   
     """ Your code starts here """
-    
+    # Compute normalization matrices T and T_prime
+    mx, my = np.mean(src, axis=0)
+    mx_prime, my_prime = np.mean(dst, axis=0)
+    sx, sy = np.std(src, axis=0) * 1/np.sqrt(2)
+    sx_prime, sy_prime = np.std(dst, axis=0) * 1/np.sqrt(2)
+
+    T = np.array([
+        [1/sx, 0, -mx/sx],
+        [0, 1/sy, -my/sy],
+        [0, 0, 1]
+    ])
+
+    T_prime = np.array([
+        [1/sx_prime, 0, -mx_prime/sx_prime],
+        [0, 1/sy_prime, -my_prime/sy_prime],
+        [0, 0, 1]
+    ])
+
+    # Add ones to matched keypoints
+    p = np.concatenate((src, np.ones((src.shape[0], 1))), axis=1)
+    p_prime = np.concatenate((dst, np.ones((dst.shape[0], 1))), axis=1)
+
+    # Perform normalization
+    q = T @ np.transpose(p)
+    q_prime = T_prime @ np.transpose(p_prime)
+    normalized_src = np.transpose(q)
+    normalized_dst = np.transpose(q_prime)
+
+    # Get matrix A
+    A = None
+    is_first_iteration = True
+    for i in range(len(src)):
+        normalized_p = normalized_src[i]
+        normalized_p_prime = normalized_dst[i]
+
+        x, y, _ = normalized_p
+        x_prime, y_prime, _ = normalized_p_prime
+
+        A_i = np.array([
+            [-x, -y, -1, 0, 0, 0, x*x_prime, y*x_prime, x_prime],
+            [0, 0, 0, -x, -y, -1, x*y_prime, y*y_prime, y_prime]
+        ])
+
+        if is_first_iteration:
+            A = A_i
+            is_first_iteration = False
+        else:
+            A = np.concatenate((A, A_i), axis=0)
+
+    # Perform SVD and calculate h_matrix
+    U, S, V_t = np.linalg.svd(A, full_matrices=False)
+    min_singular_value_idx = np.argmin(S)
+    corresponding_singular_vector = V_t[min_singular_value_idx]
+    h_matrix = np.reshape(corresponding_singular_vector, (3,3))
+    h_matrix = np.linalg.inv(T_prime) @ h_matrix @ T
     """ Your code ends here """
 
     return h_matrix
