@@ -399,7 +399,29 @@ def ransac_homography(keypoints1, keypoints2, matches, sampling_ratio=0.5, n_ite
     # RANSAC iteration start
     
     """ Your code starts here """
-    
+    for i in range(n_iters):
+        # Get n_samples number of random correspondences
+        n_sample_correspondences_indices = np.random.choice(N, n_samples, replace=False)
+
+        # Calculate H matrix with random samples using DLT
+        h_matrix = compute_homography(matched1_unpad[n_sample_correspondences_indices], matched2_unpad[n_sample_correspondences_indices])
+
+        # Determine inlier count with calculated H matrix
+        p_prime = transform_homography(matched1_unpad, h_matrix)
+        differences = matched2_unpad - p_prime
+        squared_distances = np.square(differences[:,0]) + np.square(differences[:,1])
+        inliers = (squared_distances < np.square(delta))
+        inlier_count = np.sum(inliers)
+
+        # Keep H if largest number of inliers
+        if inlier_count > n_inliers:
+            max_inliers = inliers
+            n_inliers = inlier_count
+
+    # For best H with most inliers, recompute H using all inliers
+    inliers1_unpad = keypoints1[matches[max_inliers][:,0]]
+    inliers2_unpad = keypoints2[matches[max_inliers][:,1]]
+    H = compute_homography(inliers1_unpad, inliers2_unpad)
     """ Your code ends here """
     
     return H, matches[max_inliers]
