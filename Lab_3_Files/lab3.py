@@ -533,7 +533,11 @@ def shift_sift_descriptor(desc):
     '''
     
     """ Your code starts here """
-    
+    reshaped_desc = desc.reshape((4,4,8))
+    flip_desc = np.flipud(reshaped_desc) # assuming the outer 4 arrays (axis=0) are 0,1,2,3, the flipped arrays are 3,2,1,0
+    flip_desc_2d = flip_desc.reshape((flip_desc.shape[0]*flip_desc.shape[1], flip_desc.shape[2])) # flatten back to a 2d array
+    flip_desc_2d[:,1:] = flip_desc_2d[:,-1:0:-1] # assuming each array (axis=0) contains 0,1,2,...,7, new array is 0,7,6,...,1
+    res = flip_desc_2d.flatten() # flatten into a 128-element 1d array
     """ Your code ends here """
     
     return res
@@ -546,7 +550,8 @@ def create_mirror_descriptors(img):
     '''
     
     """ Your code starts here """
-    
+    kps, descs, angles, sizes = compute_cv2_descriptor(img)
+    mir_descs = np.apply_along_axis(shift_sift_descriptor, 1, descs)
     """ Your code ends here """
     
     return kps, descs, sizes, angles, mir_descs
@@ -563,7 +568,17 @@ def match_mirror_descriptors(descs, mirror_descs, threshold = 0.7):
 
     
     """ Your code starts here """
-    
+    for f1_idx, matches in three_matches:
+        top_2_matches = list(filter(lambda match: match[0] != f1_idx, matches)) # eliminate mirror descriptor from same keypoint
+        f_2a, f_2b = top_2_matches[0], top_2_matches[1]
+        f_2a_idx, f_2a_value = f_2a
+        _, f_2b_value = f_2b
+
+        ratio = f_2a_value / f_2b_value
+
+        if ratio < threshold:
+            match_result.append([f1_idx, f_2a_idx])
+    match_result = np.array(match_result)
     """ Your code ends here """
     
     return match_result
