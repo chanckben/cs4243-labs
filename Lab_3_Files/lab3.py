@@ -629,8 +629,8 @@ def hough_vote_mirror(matches, kps, im_shape, window=1, threshold=0.5, num_lines
     A = np.zeros((number_of_distance_bins, number_of_theta_bins))
 
     for rho, theta in zip(rhos, thetas):
-        rho_bin_idx = int((rho + len_image_diagonal) / DISTANCE_INTERVAL)
-        theta_bin_idx = int(theta / THETA_INTERVAL)
+        rho_bin_idx = min(round((rho + len_image_diagonal) / DISTANCE_INTERVAL), number_of_distance_bins - 1)
+        theta_bin_idx = min(round(theta / THETA_INTERVAL), number_of_theta_bins - 1)
         A[rho_bin_idx, theta_bin_idx] += 1
 
     # Quantized theta values [0, 𝜋]
