@@ -594,7 +594,12 @@ def find_symmetry_lines(matches, kps):
     thetas = []
     
     """ Your code starts here """
-    
+    for i, j in kps[matches]:
+        mid_y, mid_x = midpoint(i, j)
+        angle = angle_with_x_axis(i, j)
+        rho = mid_x * np.cos(angle) + mid_y * np.sin(angle)
+        thetas.append(angle)
+        rhos.append(rho)
     """ Your code ends here """
     
     return rhos, thetas
@@ -609,7 +614,37 @@ def hough_vote_mirror(matches, kps, im_shape, window=1, threshold=0.5, num_lines
     rhos, thetas = find_symmetry_lines(matches, kps)
     
     """ Your code starts here """
-    
+    DISTANCE_INTERVAL = 1
+    THETA_INTERVAL = np.pi/180
+
+    height, width = im_shape
+    len_image_diagonal = np.sqrt(height**2 + width**2)
+
+    DISTANCE_RANGE_LEN = 2*len_image_diagonal  # [-d, d]
+    THETA_RANGE_LEN = np.pi  # [0, 𝜋]
+
+    number_of_distance_bins = int(DISTANCE_RANGE_LEN / DISTANCE_INTERVAL)
+    number_of_theta_bins = int(THETA_RANGE_LEN / THETA_INTERVAL)
+
+    A = np.zeros((number_of_distance_bins, number_of_theta_bins))
+
+    for rho, theta in zip(rhos, thetas):
+        rho_bin_idx = int((rho + len_image_diagonal) / DISTANCE_INTERVAL)
+        theta_bin_idx = int(theta / THETA_INTERVAL)
+        A[rho_bin_idx, theta_bin_idx] += 1
+
+    # Quantized theta values [0, 𝜋]
+    theta_space = np.array([THETA_INTERVAL * i for i in range(number_of_theta_bins)])
+
+    # Quantized distance (rho) values [-d, d]
+    rho_space = np.array([DISTANCE_INTERVAL * i - int(len_image_diagonal) for i in range(number_of_distance_bins)])
+
+    maxima = find_peak_params(A, [rho_space, theta_space], window, threshold)
+    rho_values = []
+    theta_values = []
+    for i in range(num_lines):
+        rho_values.append(maxima[1][i])
+        theta_values.append(maxima[2][i])
     """ Your code ends here """
     
     return rho_values, theta_values
