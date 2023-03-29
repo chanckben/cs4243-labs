@@ -621,7 +621,7 @@ def hough_vote_mirror(matches, kps, im_shape, window=1, threshold=0.5, num_lines
     len_image_diagonal = np.sqrt(height**2 + width**2)
 
     DISTANCE_RANGE_LEN = 2*len_image_diagonal  # [-d, d]
-    THETA_RANGE_LEN = np.pi  # [0, 𝜋]
+    THETA_RANGE_LEN = np.pi  # [0, 𝜋] because the angles in thetas only ranges from 0 to 𝜋, so there seems to be no point extending the interval to [0, 2𝜋]
 
     number_of_distance_bins = int(DISTANCE_RANGE_LEN / DISTANCE_INTERVAL)
     number_of_theta_bins = int(THETA_RANGE_LEN / THETA_INTERVAL)
