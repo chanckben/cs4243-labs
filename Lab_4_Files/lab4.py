@@ -258,7 +258,12 @@ def histogram_per_pixel(textons, window_size):
     """
    
     # TASK 2.3 #
-
+    hists = np.zeros(textons.shape[:2] + (200,))
+    half_size = (window_size - 1) // 2
+    for i in range(textons.shape[0]):
+        for j in range(textons.shape[1]):
+            window = textons[i-half_size:i+half_size, j-half_size:j+half_size, :]
+            np.add.at(hists[i,j], window, 1)
     # TASK 2.3 #
     
     return hists
