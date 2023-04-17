@@ -207,7 +207,14 @@ class Textonization:
             
         """
         # TASK 2.2 #
-
+        # STEP 1: Apply filter bank to training images
+        feature_img_lst = list(map(lambda img: features_from_filter_bank(img, self.kernels), training_imgs))
+        feature_img_lst = list(map(lambda img: img.reshape((img.shape[0]*img.shape[1], img.shape[2])), feature_img_lst)) # flatten (w,h,17) to (w*h,17)
+        feature_img_lst = np.concatenate(feature_img_lst, axis=0)
+        # STEP 2: Cluster in feature space and store cluster centers
+        mbk = MiniBatchKMeans(n_clusters=self.n_clusters, n_init=10) # default: batch_size=1024
+        mbk.fit(feature_img_lst)
+        self.cluster_centers = np.sort(mbk.cluster_centers_, axis=0)
         # TASK 2.2 #
         
         pass
@@ -223,7 +230,15 @@ class Textonization:
         
         """
         # TASK 2.2 #
-
+        # Filter image with filter bank and flatten
+        feature_img = features_from_filter_bank(img, self.kernels)
+        flat_img = feature_img.reshape((feature_img.shape[0]*feature_img.shape[1], feature_img.shape[2]))
+        # Initialise KDTree for prediction
+        tree = KDTree(self.cluster_centers)
+        # Query tree and get predicted cluster centers
+        textons = tree.query(flat_img, return_distance=False)
+        # Reshape textons back to original image shape
+        textons = textons.reshape((feature_img.shape[0], feature_img.shape[1], 1))
         # TASK 2.2 #
         
         return textons
