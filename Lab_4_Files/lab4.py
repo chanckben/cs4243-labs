@@ -176,8 +176,16 @@ def features_from_filter_bank(image, kernels):
         
     """
     # TASK 2.1 #
-
-
+    feats = []
+    img_lab = cv2.cvtColor(image, cv2.COLOR_RGB2Lab)
+    for k_gaus in kernels['gaussian']:
+        for c in range(img_lab.shape[-1]):
+            feats.append(cv2.filter2D(img_lab[:,:,c], -1, kernel=k_gaus))
+    for k_dog in kernels['gaussian_derivative']:
+        feats.append(cv2.filter2D(img_lab[:,:,0], -1, kernel=k_dog))
+    for k_log in kernels['LoG']:
+        feats.append(cv2.filter2D(img_lab[:,:,0], -1, kernel=k_log))
+    feats = np.array(feats).transpose((1,2,0))
     # TASK 2.1 #
     return feats
 
