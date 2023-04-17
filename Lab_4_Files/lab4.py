@@ -263,7 +263,7 @@ def histogram_per_pixel(textons, window_size):
     for i in range(textons.shape[0]):
         for j in range(textons.shape[1]):
             window = textons[i-half_size:i+half_size, j-half_size:j+half_size, :]
-            np.add.at(hists[i,j], window, 1)
+            hists[i,j] = np.bincount(window.flatten(), minlength=200)
     # TASK 2.3 #
     
     return hists
