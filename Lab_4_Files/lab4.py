@@ -6,7 +6,6 @@
 import numpy as np
 import cv2
 from skimage import filters
-from scipy.ndimage.interpolation import shift
 from scipy.ndimage.filters import convolve
 
 # TASK 1.1 #
@@ -36,15 +35,6 @@ def calcOpticalFlowHS(prevImg: np.array, nextImg: np.array, param_lambda: float,
     # Compute frame differences
     It = nextImg - prevImg
 
-    # Local average function
-    # def local_average(matrix):
-    #     right_shift = shift(matrix, (0, 1), cval=0)
-    #     left_shift = shift(matrix, (0, -1), cval=0)
-    #     top_shift = shift(matrix, (-1, 0), cval=0)
-    #     bottom_shift = shift(matrix, (1, 0), cval=0)
-
-    #     return (right_shift + left_shift + top_shift + bottom_shift) / 4
-
     avg_kernel = np.array([[0, 1/4, 0],
                             [1/4, 0, 1/4],
                             [0, 1/4, 0]], float)
@@ -55,14 +45,11 @@ def calcOpticalFlowHS(prevImg: np.array, nextImg: np.array, param_lambda: float,
 
     # Update equations
     while True:
-        # u_bar = local_average(u)
-        # v_bar = local_average(v)
-
-        u_bar = convolve(u, avg_kernel, mode="constant")
-        v_bar = convolve(v, avg_kernel, mode="constant")
+        u_bar = convolve(u, avg_kernel)
+        v_bar = convolve(v, avg_kernel)
 
         # the fraction term multiplied to Ix and Iy to determine the new u and v values in the update equations
-        update_constant = (Ix*u_bar + Iy*v_bar + It) / (np.reciprocal(param_lambda) + Ix**2 + Iy**2)
+        update_constant = (Ix*u_bar + Iy*v_bar + It) / (1/param_lambda + Ix**2 + Iy**2)
         previous = u
 
         u = u_bar - update_constant*Ix
@@ -71,6 +58,7 @@ def calcOpticalFlowHS(prevImg: np.array, nextImg: np.array, param_lambda: float,
         # Check for convergence and break out of loop if convergence conditions are met
         diff = np.linalg.norm(u - previous, 2)
         if diff < param_delta:
+            print("converged")
             break
 
     flow = np.stack((u, v), axis=2)
