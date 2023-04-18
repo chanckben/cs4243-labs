@@ -29,11 +29,25 @@ def calcOpticalFlowHS(prevImg: np.array, nextImg: np.array, param_lambda: float,
         
     """
     # TASK 1.1 #
-    Ix = filters.sobel_v(prevImg)
-    Iy = filters.sobel_h(prevImg)
+    def compute_gradients(firstImage, secondImage):
+        firstImage = firstImage / 255
+        secondImage = secondImage / 255
 
-    # Compute frame differences
-    It = nextImg - prevImg
+        kernel_x = np.array([[-1., 1.], [-1., 1.]]) / 4
+        kernel_y = np.array([[-1., -1.], [1., 1.]]) / 4
+        kernel_t = np.array([[1., 1.], [1., 1.]]) / 4
+
+        Ix = convolve(input=firstImage, weights=kernel_x, mode="nearest")
+        Iy = convolve(input=firstImage, weights=kernel_y, mode="nearest")
+        It = convolve(input=secondImage, weights=kernel_t, mode="nearest") + convolve(
+            input=firstImage, weights=-kernel_t, mode="nearest"
+        )
+
+        I = [Ix, Iy, It]
+
+        return I
+    
+    Ix, Iy, It = compute_gradients(prevImg, nextImg)
 
     avg_kernel = np.array([[0, 1/4, 0],
                             [1/4, 0, 1/4],
@@ -43,20 +57,22 @@ def calcOpticalFlowHS(prevImg: np.array, nextImg: np.array, param_lambda: float,
     u = np.zeros(prevImg.shape)
     v = np.zeros(prevImg.shape)
 
+    d= (1/param_lambda + Ix**2 + Iy**2)
+
     # Update equations
     while True:
-        u_bar = convolve(u, avg_kernel)
-        v_bar = convolve(v, avg_kernel)
+        u_bar = convolve(u, avg_kernel, mode="constant")
+        v_bar = convolve(v, avg_kernel, mode="constant")
 
         # the fraction term multiplied to Ix and Iy to determine the new u and v values in the update equations
-        update_constant = (Ix*u_bar + Iy*v_bar + It) / (1/param_lambda + Ix**2 + Iy**2)
+        update_constant = (Ix*u_bar + Iy*v_bar + It) / d
         previous = u
 
         u = u_bar - update_constant*Ix
         v = v_bar - update_constant*Iy
 
         # Check for convergence and break out of loop if convergence conditions are met
-        diff = np.linalg.norm(u - previous, 2)
+        diff = np.linalg.norm(u - previous)
         if diff < param_delta:
             print("converged")
             break
