@@ -244,7 +244,7 @@ class Textonization:
         feature_img_lst = list(map(lambda img: img.reshape((img.shape[0]*img.shape[1], img.shape[2])), feature_img_lst)) # flatten (w,h,17) to (w*h,17)
         feature_img_lst = np.concatenate(feature_img_lst, axis=0)
         # STEP 2: Cluster in feature space and store cluster centers
-        mbk = MiniBatchKMeans(n_clusters=self.n_clusters) # default: batch_size=1024
+        mbk = MiniBatchKMeans(n_clusters=self.n_clusters, random_state=0) # default: batch_size=1024
         mbk.fit(feature_img_lst)
         cluster_centers = np.sort(mbk.cluster_centers_, axis=0)
         self.cc_tree = KDTree(cluster_centers) # store cluster centers in KDTree for testing
@@ -289,12 +289,12 @@ def histogram_per_pixel(textons, window_size):
     """
    
     # TASK 2.3 #
-    hists = np.zeros(textons.shape[:2] + (200,))
+    hists = np.zeros(textons.shape[:2] + (250,))
     half_size = (window_size - 1) // 2
     for i in range(textons.shape[0]):
         for j in range(textons.shape[1]):
             window = textons[i-half_size:i+half_size, j-half_size:j+half_size, :]
-            hists[i,j] = np.bincount(window.flatten(), minlength=200)
+            hists[i,j] = np.bincount(window.flatten(), minlength=250)
     # TASK 2.3 #
     
     return hists
