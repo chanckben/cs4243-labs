@@ -33,20 +33,21 @@ def calcOpticalFlowHS(prevImg: np.array, nextImg: np.array, param_lambda: float,
         firstImage = firstImage / 255
         secondImage = secondImage / 255
 
-        kernel_x = np.array([[-1., 1.], [-1., 1.]]) / 4
-        kernel_y = np.array([[-1., -1.], [1., 1.]]) / 4
+        # Kernels for finding gradients Ix, Iy, It
+        kernel_x = np.array([[-1., 0., 1.], [-1., 0., 1.]]) / 4
+        kernel_y = np.array([[-1., -1.], [0., 0.], [1., 1.]]) / 4
         kernel_t = np.array([[1., 1.], [1., 1.]]) / 4
 
-        Ix = convolve(input=firstImage, weights=kernel_x, mode="nearest")
-        Iy = convolve(input=firstImage, weights=kernel_y, mode="nearest")
-        It = convolve(input=secondImage, weights=kernel_t, mode="nearest") + convolve(
-            input=firstImage, weights=-kernel_t, mode="nearest"
+        Ix = convolve(input=firstImage, weights=kernel_x, mode="constant")
+        Iy = convolve(input=firstImage, weights=kernel_y, mode="constant")
+        It = convolve(input=secondImage, weights=kernel_t, mode="constant") + convolve(
+            input=firstImage, weights=-kernel_t, mode="constant"
         )
 
         I = [Ix, Iy, It]
 
         return I
-    
+
     Ix, Iy, It = compute_gradients(prevImg, nextImg)
 
     avg_kernel = np.array([[0, 1/4, 0],
@@ -95,7 +96,24 @@ def combine_and_normalize_features(feat1: np.array, feat2: np.array, gamma: floa
         
     """
     # TASK 1.2 #
+    def normalization(arr):
+        return (arr - np.mean(arr)) / np.std(arr)
 
+    r = feat1[..., 0]
+    g = feat1[..., 1]
+    b = feat1[..., 2]
+
+    r_mean = normalization(r)
+    g_mean = normalization(g)
+    b_mean = normalization(b)
+
+    u = feat2[..., 0]
+    v = feat2[..., 1]
+
+    u_mean = normalization(u)
+    v_mean = normalization(v)
+
+    feats = np.array((r_mean, g_mean, b_mean, u_mean, v_mean)).transpose((1,2,0))
     # TASK 1.2 #
     
     return feats
