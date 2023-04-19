@@ -237,7 +237,7 @@ class Textonization:
         feature_img_lst = list(map(lambda img: img.reshape((img.shape[0]*img.shape[1], img.shape[2])), feature_img_lst)) # flatten (w,h,17) to (w*h,17)
         feature_img_lst = np.concatenate(feature_img_lst, axis=0)
         # STEP 2: Cluster in feature space and store cluster centers
-        mbk = MiniBatchKMeans(n_clusters=self.n_clusters, random_state=0) # default: batch_size=1024
+        mbk = MiniBatchKMeans(n_clusters=self.n_clusters, random_state=1) # default: batch_size=1024
         mbk.fit(feature_img_lst)
         cluster_centers = np.sort(mbk.cluster_centers_, axis=0)
         self.cc_tree = KDTree(cluster_centers) # store cluster centers in KDTree for testing
