@@ -97,23 +97,16 @@ def combine_and_normalize_features(feat1: np.array, feat2: np.array, gamma: floa
     """
     # TASK 1.2 #
     def normalization(arr):
+        if not np.any(arr):
+            return np.zeros_like(arr)
         return (arr - np.mean(arr)) / np.std(arr)
 
-    r = feat1[..., 0]
-    g = feat1[..., 1]
-    b = feat1[..., 2]
-
-    r_mean = normalization(r)
-    g_mean = normalization(g)
-    b_mean = normalization(b)
-
-    u = feat2[..., 0]
-    v = feat2[..., 1]
-
-    u_mean = gamma * normalization(u)
-    v_mean = gamma * normalization(v)
-
-    feats = np.array((r_mean, g_mean, b_mean, u_mean, v_mean)).transpose((1,2,0))
+    result = []
+    for c1 in range(feat1.shape[-1]):
+        result.append(normalization(feat1[..., c1]))
+    for c2 in range(feat2.shape[-1]):
+        result.append(gamma * normalization(feat2[..., c2]))
+    feats = np.array(result).transpose((1,2,0))
     # TASK 1.2 #
     
     return feats
@@ -293,7 +286,7 @@ def histogram_per_pixel(textons, window_size):
     half_size = (window_size - 1) // 2
     for i in range(textons.shape[0]):
         for j in range(textons.shape[1]):
-            window = textons[i-half_size:i+half_size, j-half_size:j+half_size, :]
+            window = textons[max(0, i-half_size):i+half_size, max(0, j-half_size):j+half_size, :]
             hists[i,j] = np.bincount(window.flatten(), minlength=250)
     # TASK 2.3 #
     
