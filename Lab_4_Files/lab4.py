@@ -110,8 +110,8 @@ def combine_and_normalize_features(feat1: np.array, feat2: np.array, gamma: floa
     u = feat2[..., 0]
     v = feat2[..., 1]
 
-    u_mean = normalization(u)
-    v_mean = normalization(v)
+    u_mean = gamma * normalization(u)
+    v_mean = gamma * normalization(v)
 
     feats = np.array((r_mean, g_mean, b_mean, u_mean, v_mean)).transpose((1,2,0))
     # TASK 1.2 #
